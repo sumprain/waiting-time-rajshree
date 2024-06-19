@@ -1,0 +1,324 @@
+---
+title: Average waiting times in OPDs
+format:
+    typst:
+        toc: true
+execute:
+    echo: false
+---
+
+```{python}
+#import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as st
+from simulation import create_master_simulator
+from IPython.display import Markdown
+```
+
+## Methodology
+
+Average waiting time for patients waiting in OPDs and dispensaries can be calculated by **Queue Theory**. A queue is formed when patients wait after getting registered in the respective OPDs before being seen by the doctors. Waiting time is determined by the following.
+
+1.  **Arrival Rate:** It is the rate at which patients enter into the queue after being registered in the OPDs. It is expressed as patients per minute. It is estimated by observing number of patients entering the queue over certain time duration (say, over 15 minutes) and then dividing the number of patients by observed time duration.
+
+2.  **Exit Rate:** It is the rate at which patients leave the queue to show to doctors. If there are more than one doctors, each of them will contribute to the overall exit rate. It is estimated by observing number of patients exit the queue over certain time duration (say, over 15 minutes) and then dividing the number of patients by observed time duration.
+
+### Steps involved in calculation
+
+1. Estimate arrival rate, exit rate and number of patients already present in the queue before the obervation starts.
+
+1. Generate arrival and exit of random patients by using Poisson distribution with the arrival/exit rates estimated above.
+
+1. Calculate the waiting times for each of the simulation generated patients and the queue length at each time points (at every 1 minute interval).
+
+1. Calculate the average waiting time with bootstrap generated 95% confidence interval, both for the whole duration of observation and for each entry times.
+
+1. Calculate the maximum queue length, both for the whole duration of observation and for each time interval.
+
+### Data collection
+
+Surveys were done in the months of May and Jun 2024 across the following OPDs and dispensary to assess average waiting time.
+
+## ENT OPD
+
+```{python}
+#| echo: true
+arrs = [11, 12, 15, 12, 10, 10, 3, 3, 6, 3, 3, 5, 2]
+exits = [0, 0, 3, 3, 4, 5, 3, 4, 4, 7, 7, 7, 4]
+durs = [15] * 13
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Cardiology OPD
+
+```{python}
+#| echo: true
+
+arrs = [18, 8, 8, 5, 3, 4, 7, 5, 5, 6, 15, 4, 3]
+exits = [0, 5, 10, 6, 7, 10, 4, 3, 4, 3, 3, 2, 3]
+durs = [15]*13
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Pediatrics OPD
+
+```{python}
+#| echo: true
+
+arrs = [5, 7, 6, 5, 5, 6, 4, 5, 5, 7, 5, 3, 3]
+exits = [0, 4, 3, 2, 5, 7, 7, 4, 3, 4, 5, 5, 4]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+{{< include reuse_chunk.qmd >}}
+
+## Orthopedics OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [20, 4, 3, 3, 6, 0, 4, 7, 3, 0, 0, 4, 1]
+exits = [0, 3, 4, 6, 3, 4, 4, 2, 2, 3, 3, 1, 1]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Nephrology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [17, 8, 5, 5, 3, 5, 2, 6, 2, 3, 2, 3, 5]
+exits = [0, 3, 4, 4, 5, 10, 5, 4, 7, 5, 3, 2, 3]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Neurology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [3, 3, 3, 6, 2, 2, 0, 3, 2, 3, 1, 2]
+exits = [0, 3, 3, 4, 0, 0, 1, 2, 0, 2, 1, 3]
+durs = [15] * len(arrs)
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Psychiatry OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [4, 1, 0, 0, 2, 2, 3, 2, 4, 0, 1, 0]
+exits = [1, 1, 1, 3, 3, 2, 2, 1, 3, 0, 0, 1]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## GI Surgery OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [1, 2, 2, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
+exits = [0, 0, 2, 2, 1, 3, 2, 2, 3, 3, 2, 0, 1]
+durs = [15] * len(arrs)
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Neurosurgery OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [13, 2, 1, 2, 3, 3, 6, 5, 3, 0, 0]
+exits =[0, 2, 1, 3, 2, 3, 5, 4, 2, 1, 3]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Reconstructive OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [2, 1, 1, 0, 2, 0, 1, 0, 0, 1, 1, 1, 2]
+exits = [0, 0, 2, 3, 0, 0, 1, 1, 2, 0, 1, 1, 2]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## MI Room
+
+```{python}
+#| echo: true
+ 
+arrs = [20, 3, 7, 12, 15, 10, 5, 3, 5, 3, 4, 5, 5]
+exits = [0, 8, 8, 6, 11, 10, 10, 10, 9, 9, 7, 4, 2]
+durs = [15] * len(arrs)
+n_exits = 4
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## CTVS OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+exits = [0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+durs = [15] * len(arrs)
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Hematology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [4, 2, 1, 0, 3, 2, 0, 0, 1, 2, 0, 0]
+exits = [0, 2, 3, 2, 2, 3, 3, 1, 2, 1, 1, 1]
+durs = [15] * len(arrs)
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Respiratory OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [12, 4, 4, 8, 3, 3, 2, 3, 2, 2, 2, 1, 0]
+exits = [0, 0, 3, 3, 6, 6, 4, 3, 3, 3, 2, 2, 1]
+durs = [15] * len(arrs)
+n_exits = 1
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Oncology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [20, 15, 10, 2, 2, 7, 4, 3, 0, 3, 2, 1, 0]
+exits = [0, 0, 3, 3, 2, 2, 4, 4, 0, 3, 0, 0, 5]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## General Medicine OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [20, 12, 7, 14, 10, 7, 8, 6, 12, 10, 6, 4, 2, 6, 2]
+exits = [0, 2, 13, 10, 8, 7, 11, 12, 9, 7, 6, 15, 3, 2, 2]
+durs = [15] * len(arrs)
+n_exits = 4
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Family OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [10, 6, 5, 6, 5, 6, 6, 5, 6, 6, 4, 5, 6, 4, 4]
+exits = [0, 4, 3, 4, 3, 4, 4, 3, 4, 5, 4, 5, 4, 4, 4]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Gynaecology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [10, 12, 8, 6, 7, 10, 9, 8, 6, 5, 4, 3, 2, 1, 1]
+exits = [0, 2, 6, 7, 10, 7, 8, 9, 10, 2, 11, 3, 6, 1, 1]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Eye OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [20, 21, 14, 22, 18, 11, 24, 22, 16, 21, 24, 26, 5, 2, 8]
+exits = [0, 15, 21, 16, 22, 10, 18, 20, 22, 18, 20, 16, 14, 12, 10]
+durs = [15] * len(arrs)
+n_exits = 4
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Dermatology OPD
+
+```{python}
+#| echo: true
+ 
+arrs = [21, 12, 8, 9, 8, 11, 10, 6, 16, 13, 10, 9, 17, 10, 6]
+exits = [0, 7, 10, 11, 6, 4, 12, 4, 8, 13, 12, 6, 15, 7, 10]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Blood Collection Centre
+
+```{python}
+#| echo: true
+ 
+arrs = [21, 21, 19, 20, 18, 17, 20, 19, 18, 20, 16, 9, 7, 11, 13]
+exits = [0, 18, 20, 19, 17, 19, 18, 20, 16, 19, 17, 12, 10, 9, 8]
+durs = [15] * len(arrs)
+n_exits = 2
+```
+
+{{< include reuse_chunk.qmd >}}
+
+## Dispensary
+
+```{python}
+#| echo: true
+ 
+arrs = [5, 7, 6, 10, 18, 15, 24, 27, 32, 30, 35, 40, 45, 31, 27, 39, 25, 22, 20, 18]
+exits = [5, 7, 6, 10, 17, 15, 20, 22, 26, 26, 25, 30, 29, 28, 27, 25, 2, 29, 27, 29]
+durs = [15] * len(arrs)
+n_exits = 3
+```
+
+{{< include reuse_chunk.qmd >}}

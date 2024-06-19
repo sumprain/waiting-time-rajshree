@@ -1,0 +1,31 @@
+```{python}
+s = create_master_simulator(arrs, exits, durs, n_exits, thresh_rate = 0.025, n_sim = 200)
+```
+
+### Average Waiting Time
+
+```{python}
+avwt = s.average_waiting_time(with_ci = True)
+Markdown(f'#### Mean waiting time: {avwt.mean:.2f} min; 95% CI: {avwt.cl_95[0]:.2f} - {avwt.cl_95[1]:.2f} min')
+```
+
+```{python}
+f, ax = plt.subplots(figsize = (6, 4))
+s.plot_average_waiting_time_with_time(ax, with_ci=False)
+ax.set_xlabel('Time since start of observation (minutes)')
+_ = ax.set_ylabel('Mean Waiting Time (minutes)')
+```
+
+### Maximum Queue Length
+
+```{python}
+maxql = s.max_queue_length(with_ci=False)
+Markdown(f'#### Maximum queue length: {maxql.max:3d} patients')
+```
+
+```{python}
+f, ax = plt.subplots(figsize = (6, 4))
+s.plot_max_queuelength_with_time(ax, with_ci=False)
+ax.set_xlabel('Time since start of observation (minutes)')
+_ = ax.set_ylabel('Maximum Queue Length')
+```
